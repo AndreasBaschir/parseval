@@ -1,14 +1,4 @@
-import re
-
-
-###################################################################################
-
-# GLOBAL VARIABLES
-
-SPICE_ABS_TEMP_PAT = re.compile(r' *\(? *temp *\+ *273.15 *\)? *')
-
-###################################################################################
-
+# !/usr/bin/env python3
 
 class Variable:
     def __init__(self, s: str):
@@ -37,34 +27,28 @@ class Paranthesis:
 def is_paranthesis(token):
     return isinstance(token, Paranthesis)
 
-###################################################################################
-
-# CLASS AST
 
 class AST:
     """
     A class representing an Abstract Syntax Tree (AST) for arithmetic expressions.
     """
+   
+    def __init__(self, token_or_list):
+        if isinstance(token_or_list, list):
+            prefix = infix_to_prefix(token_or_list[:])
+            ast = AST.getAST(prefix)
+            # Copy ast's attributes to self
+            self.__dict__ = ast.__dict__
+        else:
+            self.token = token_or_list
+            if isinstance(token_or_list, Operator):
+                if token_or_list.op == '**':
+                    self.base = None
+                    self.power = None
+                else:
+                    self.right = None
+                    self.left = None
 
-    # =======================================================================================
-
-    # CONSTRUCTOR
-    
-    def __init__(self, token):
-        self.token = token
-        if isinstance(token, Operator):
-            if token.op == '^':
-                self.base = None
-                self.power = None
-            else:
-                self.right = None
-                self.left = None
-
-    # /CONSTRUCTOR
-
-    # =======================================================================================
-
-    # METHOD inorderAST
 
     def inorderAST(self):
         """
@@ -74,7 +58,7 @@ class AST:
             return [self.token]
         elif is_operator(self.token):
             returnList = list()
-            if self.token.op == '^':
+            if self.token.op == '**':
                 base = self.base.inorderAST()
                 power = self.power.inorderAST()
                 if is_operator(self.base.token):
@@ -114,11 +98,6 @@ class AST:
                     returnList += right
             return returnList
 
-    # /METHOD inorderAST
-
-    # =======================================================================================
-
-    # METHOD replace_token
 
     def replace_token(self, match, replace):
         """
@@ -131,20 +110,14 @@ class AST:
 
         # tail - recursion
         elif is_operator(self.token):
-            if self.token.op == '^':
+            if self.token.op == '**':
                 self.base.replace_token(match, replace)
                 self.power.replace_token(match, replace)
             else:
                 self.right.replace_token(match, replace)
                 self.left.replace_token(match, replace)
 
-    # /METHOD replace_token
-
-    # =======================================================================================
-
-    # METHOD getAST
-
-    # Construction of AST using the prefix order of string. It is easy this way, AST is placing elements from left to right
+    
     @staticmethod
     def getAST(token_list):
         """
@@ -161,7 +134,7 @@ class AST:
         node = AST(token)
 
         if is_operator(token):
-            if token.op == '^':
+            if token.op == '**':
                 node.base = AST.getAST(token_list)
                 node.power = AST.getAST(token_list)
             else:
@@ -169,12 +142,10 @@ class AST:
                 node.right = AST.getAST(token_list)
 
         return node
+    
+    def __str__(self):
+        return ''.join(str(t) for t in self.inorderAST())
 
-    # /METHOD getAST
-
-# /CLASS AST
-
-#############################################################################
 
 def tokenization(s: str):
     """
@@ -201,7 +172,7 @@ def tokenization(s: str):
             crt_token = ''
             # checks for '**' 
             if i + 1 < len(s) and s[i + 1] == '*':
-                tokens.append(Operator('^'))
+                tokens.append(Operator('**'))
                 i += 1
             else:
                 tokens.append(Operator(s[i]))
@@ -256,7 +227,7 @@ def precedence(operator):
             return 1
         elif operator.op == '*' or operator.op == '/':
             return 2
-        elif operator.op == '^':
+        elif operator.op == '**':
             return 3
     return 0
 
@@ -283,7 +254,7 @@ def infix_to_postfix(token_list: list):
                 token_stack.pop()
         else:
             if is_operator(token_stack[-1]) or is_paranthesis(token_stack[-1]):
-                if is_operator(token_list[i]) and token_list[i].op == '^':
+                if is_operator(token_list[i]) and token_list[i].op == '**':
                     while precedence(token_list[i]) <= precedence(token_stack[-1]):
                         pop_element = token_stack.pop()
                         output.append(pop_element)
@@ -313,39 +284,25 @@ def infix_to_prefix(token_list):
     prefix = prefix[::-1]
     return prefix
 
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
 
-def spice_to_comsol(s: str, var_list: list = None):
+def parse_spice(s: str):
     """
-    Convert a SPICE expression to a COMSOL expression.
-    Replaces all occurrences of temp+273.15 with (T/1[K]) and temp with ((T-0[degC])/1[K]).
-    Handles operator precedence and parentheses using an AST.
+    Convert a SPICE expression to an AST.
+    
+    :param s: The SPICE expression string.
+    :return: An AST object representing the SPICE expression.
+    :rtype: AST
     """
-    sa = SPICE_ABS_TEMP_PAT.sub('tempa', s)
-    listOfTokens = tokenization(sa)
-    prefix = infix_to_prefix(listOfTokens)
-    ast = AST.getAST(prefix)
-    ast.replace_token('tempa', '(T/1[K])')
-    ast.replace_token('temp', '((T-0[degC])/1[K])')
-    comsolList = ast.inorderAST()
-    comsolString = ''.join(str(el) for el in comsolList)
-    if var_list is not None:
-        var_list.clear()
-        var_list.extend(list(set(variable_list)))  # Remove duplicates from variable list
-        var_list[:] = [v for v in var_list if not is_number(v)]
-    return comsolString
+    listOfTokens = tokenization(s)
+    ast = AST(listOfTokens) 
+    return ast
 
+
+# Example usage
 def main():
-    # Example usage
-    vars = []
     spice_expression = "(-0.0036*(temp+273.15)**2+4.6305*(temp+273.15)-405.38)*3210"
-    comsol_expression = spice_to_comsol(spice_expression, var_list=vars)
-    print("COMSOL Expression:", comsol_expression)
-    print("Variables:", vars)
+    ast = parse_spice(spice_expression)
+    print("SPICE Expression from AST:", ast)
+
 if __name__ == "__main__":
     main()
