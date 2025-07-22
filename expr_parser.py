@@ -36,17 +36,17 @@ class ExprParser:
         """
         pass
 
-    def parse_spice(self, varnames=None):
+    def parse_spice(self):
         if self.lang == "comsol":
             raise ValueError("parse_spice() cannot be called on 'comsol' expressions!")
-        ast = parse_spice(self.expr, varnames=varnames)
+        ast = parse_spice(self.expr)
         self.ast = ast
         return ast
 
     def parse_comsol(self, varnames=None):
         if self.lang == "spice":
             raise ValueError("parse_comsol() cannot be called on 'spice' expressions!")
-        ast = parse_comsol(self.expr, varnames=varnames)
+        ast = parse_comsol(self.expr)
         self.ast = ast
         return ast
 

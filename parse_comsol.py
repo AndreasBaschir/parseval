@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
 
-import re
-
-###################################################################################
-
-# GLOBAL VARIABLES
-
-COMSOL_ABS_TEMP_PAT = re.compile(r'\(\s*T\s*\/\s*1\s*\[\s*K\s*\]\s*\)')
-COMSOL_TEMP_PAT = re.compile(r'\(\(T-0\[degC\]\)/1\[K\]\)')
-SPICE_ABS_TEMP_PAT = re.compile(r' *\(? *temp *\+ *273.15 *\)? *')
-
-###################################################################################
-
 class Variable:
     def __init__(self, s: str):
         self.var = s
@@ -39,7 +27,6 @@ class Paranthesis:
 def is_paranthesis(token):
     return isinstance(token, Paranthesis)
 
-###################################################################################
 
 def tokenization(s: str):
     """
@@ -48,8 +35,6 @@ def tokenization(s: str):
     :rtype: list
     """
     tokens = list()
-    global variable_list
-    variable_list = list()
     crt_token = ''
 
     # i is used like a pointer through list
@@ -63,17 +48,15 @@ def tokenization(s: str):
         # this part adds an Operator token
         if s[i] == '*' or s[i] == '^' or s[i] == '+' or s[i] == '-' or s[i] == '/':
             if crt_token != '':
-                variable_list.append(crt_token)
-                tokens.append(Variable(crt_token))
                 if crt_token[0] == '-':
                     crt_token = '(' + crt_token + ')'
+                tokens.append(Variable(crt_token))
             crt_token = ''
             tokens.append(Operator(s[i]))
 
         # this part adds an Paranthesis token
         elif s[i] == '(':
             if crt_token != '':
-                variable_list.append(crt_token)
                 tokens.append(Variable(crt_token))
             crt_token = ''
             tokens.append(Paranthesis(s[i]))
@@ -84,10 +67,9 @@ def tokenization(s: str):
         # this part adds an Paranthesis token
         elif s[i] == ')':
             if crt_token != '':
-                variable_list.append(crt_token)
-                tokens.append(Variable(crt_token))
                 if crt_token[0] == '-':
                     crt_token = '(' + crt_token + ')'
+                tokens.append(Variable(crt_token))
             crt_token = ''
             tokens.append(Paranthesis(s[i]))
 
@@ -103,6 +85,7 @@ def tokenization(s: str):
                 tokens.append(Variable(crt_token))
         i += 1
 
+    print([x.__str__() for x in tokens])
     return tokens
 
 
@@ -191,38 +174,33 @@ def infix_to_prefix(token_list):
 
     return prefix
 
-###################################################################################
 
 class AST:
     """
         A class representing an Abstract Syntax Tree (AST) for arithmetic expressions.
     """
-   
-    # =======================================================================================
-
-    # CONSTRUCTOR
-    
-    def __init__(self, token):
+       
+    def __init__(self, token_or_list):
         """
         :param token: A token that will be the root of the AST
         :type token: Variable, Operator, Paranthesis
         :return: None        
         """
-        self.token = token
+        if isinstance(token_or_list, list):
+            prefix = infix_to_prefix(token_or_list[:])
+            ast = AST.getAST(prefix)
+            # Copy ast's attributes to self
+            self.__dict__ = ast.__dict__
+        else:
+            self.token = token_or_list
+            if isinstance(token_or_list, Operator):
+                if token_or_list.op == '^':
+                    self.base = None
+                    self.power = None
+                else:
+                    self.right = None
+                    self.left = None
 
-        if isinstance(token, Operator):
-            if token.op == '^':
-                self.base = None
-                self.power = None
-            else:
-                self.right = None
-                self.left = None
-
-    # /CONSTRUCTOR
-    
-    # =======================================================================================
-
-    # METHOD replaceToken
     
     def replaceToken(self, match: str, replace: str):
         """
@@ -247,11 +225,6 @@ class AST:
                 self.right.replaceToken(match, replace)
                 self.left.replaceToken(match, replace)
 
-    # /METHOD replaceToken
-    
-    # =======================================================================================
-
-    # METHOD getAST
 
     @staticmethod
     def getAST(token_list) -> "AST":
@@ -276,11 +249,6 @@ class AST:
 
         return node
     
-    # /METHOD getAST
-
-    # =======================================================================================
-
-    # METHOD inorderAST
 
     def inorderAST(self):
         """
@@ -352,12 +320,9 @@ class AST:
                     returnList += right
 
             return returnList
-            
-    # /METHOD inorderAST
 
-# /CLASS AST
-
-#############################################################################
+    def __str__(self):
+        return ''.join(str(t) for t in self.inorderAST())
  
 def is_number(s):
     try:
@@ -366,28 +331,23 @@ def is_number(s):
     except ValueError:
         return False
 
-def comsol_to_spice(expr: str, var_list: list = None) -> str:
+def parse_comsol(expr: str, var_list: list = None) -> str:
     """
     :param expr: A COMSOL expression string
     :param var_list: A list to store variable names found in the expression
     :type var_list: list
     :return: A SPICE expression string if function executed correctly, and a variable list
     """
-    # replace [T/1[K]] with 'tempa'
-    sa = COMSOL_ABS_TEMP_PAT.sub('tempa', expr)
-    sa = COMSOL_TEMP_PAT.sub('temp', sa)
-    list_of_tokens = tokenization(sa)
-    prefix = infix_to_prefix(list_of_tokens)
-    ast = AST.getAST(prefix)
-    spice_expr = ast.inorderAST()
-    spice_expr = ''.join(str(token) for token in spice_expr)
-    # Replace '^' with '**'
-    spice_expr = re.sub(r'\^', '**', sa)
-    # Replace 'tempa' with 'temp + 273.15'
-    spice_expr = re.sub('tempa','(temp+273.15)', spice_expr)
-    if var_list is not None:
-        var_list.clear()
-        var_list.extend(list(set(variable_list)))  # Remove duplicates from variable list
-        var_list[:] = [v for v in var_list if not is_number(v)]
-        var_list[:] = ['temp' if v == 'tempa' else v for v in var_list]
-    return spice_expr
+    list_of_tokens = tokenization(expr)
+    ast = AST(list_of_tokens)
+    return ast
+
+
+# Example usage
+def main():
+    comsol_expression = "6e6*(T/1[K])^(-1.702)"
+    ast = parse_comsol(comsol_expression)
+    print("COMSOL Expression from AST:", ast)
+
+if __name__ == "__main__":
+    main()
