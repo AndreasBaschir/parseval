@@ -1,70 +1,105 @@
+# !/usr/bin/env python3
+
 from pyxeval import PyxEval
-import re
+import parse_spice, parse_comsol 
+from abstract_syntax_tree import AST
 
 class ExprParser:
-    def __init__(self, expr: str, argnames: list, sym_table: dict = None, language: str = None):
+    def __init__(self, expr: str, argnames: list, language: str = None):
         """
-        :param expr: a string with the expression that needs to be evaluated
-        :param argnames: a list of strings with all the factors names
-        :param sym_table: a dictionary for constants
-        :param language: string for specifying programming language used in expression
+        Initializes the expression parser with an expression, argument names, and the expression language.
+        
+        :param expr: The expression to be parsed.
+        :param argnames: A list of argument names used in the expression.
+        :param language: The language of the expression, e.g., 'spice' or 'comsol'.
         """
         self.expr = expr
-        self.argnames = argnames 
-        self.symbol_table = sym_table
-        self.language = language
-        self.evaluator = PyxEval(expr, self.argnames, self.symbol_table, self.language)
+        self.argnames = argnames
+        self.lang = language
+        self.AST = None
+        self.evaluator = None # to be implemented 
 
     def aeval(self, *args):
-        return self.evaluator.aeval(*args)
+        """
+        similar to pyxeval
+        """
+        pass
 
     def keval(self, **kwargs):
-        return self.evaluator.keval(**kwargs)
+        """
+        similar to pyxeval
+        """
+        pass
 
     def parse_spice(self):
-        pass
+        if self.lang == "comsol":
+            raise ValueError("parse_spice() cannot be called on 'comsol' expressions!")
+        self.AST = parse_spice(self.expr)
+        return self.AST
 
     def parse_comsol(self):
-        pass
+        if self.lang == "spice":
+            raise ValueError("parse_comsol() cannot be called on 'spice' expressions!")
+        self.AST = parse_comsol(self.expr)
+        return self.AST
 
     def generate_spice(self):
-        pass
+        if self.lang == "spice":
+            return self.expr
+        return self.AST.generate_spice()
 
     def generate_comsol(self):
-        pass
+        if self.lang == "comsol":
+            return self.expr
+        return self.AST.generate_comsol()
 
 def main():
-    # Example usage of ExprParser
-    COMSOL_ABS_TEMP_PAT = re.compile(r'\(\s*T\s*\/\s*1\s*\[\s*K\s*\]\s*\)')
-    COMSOL_TEMP_PAT = re.compile(r'\(\(T-0\[degC\]\)/1\[K\]\)')
+
+    # Example SPICE usage
+    expr_parser_spice = ExprParser(expr="((-0.0036)*kappa*(temp+273.15)**2+4.6305*(temp+273.15)+x-405.38)*3210",
+                             argnames=["temp","x"], language="spice")
     
-    spice_expr_example_0 = "50/(0.03+1.56e-3*(temp+273.15)+1.65e-6*(temp+273.15)**2)"
-    comsol_expr_example_0 = "(50/(0.03+1.56e-3*(T/1[K])+1.65e-6*(T/1[K])^2))"
+    # ast from spice
+    ast_0 = expr_parser_spice.parse_spice()
+    
+    # Evaluate the expression using aeval and keval
+    res_0 = expr_parser_spice.aeval(25, 100)
+    res_1 = expr_parser_spice.keval(temp=25, x=100)
+    
+    # Generate SPICE and COMSOL expressions
+    generated_spice_0 = expr_parser_comsol.generate_spice()
+    generated_comsol_0 = expr_parser_comsol.generate_comsol()
 
-    comsol_expr_example_0 = re.sub(COMSOL_ABS_TEMP_PAT, 'T', comsol_expr_example_0)
-    comsol_expr_example_0 = re.sub(COMSOL_TEMP_PAT, 't', comsol_expr_example_0)
+    # Print results
+    print(f"AST: {ast_0}")
+    print(f"Result (aeval): {res_0}")
+    print(f"Result (keval): {res_1}")
+    print(f"Generated SPICE: {generated_spice_0}")
+    print(f"Generated COMSOL: {generated_comsol_0}")
 
-    if '^' in comsol_expr_example_0:
-        comsol_expr_example_0 = comsol_expr_example_0.replace('^', '**')
-    print(f"COMSOL Expression: {comsol_expr_example_0}")
-    parser = ExprParser(expr=comsol_expr_example_0, argnames=['T'])
-    result = parser.aeval(273.15) 
-    print(f"COMSOL Result: {result}")
-    print("===============================\n")
+    # ========================================================================================================
 
-    spice_expr_example_1 = "(671+1.04*temp-1.17e-3*temp**2)*2320"
-    comsol_expr_example_1 = "(671+1.04*((T-0[degC])/1[K])-1.17e-3*((T-0[degC])/1[K])^2)"
+    # Example COMSOL usage
+    expr_parser_comsol = ExprParser(expr="(671+1.04*((T-0[degC])/1[K])-1.17e-3*((T-0[degC])/1[K])^2)", 
+                                       argnames=["T"], language="comsol")
+    
+    # ast from comsol
+    ast_1 = expr_parser_comsol.parse_comsol()
+    
+    # Evaluate the expression using aeval and keval
+    res_0 = expr_parser_comsol.aeval(A=25, B=100, C=50, D=10)
+    res_1 = expr_parser_comsol.keval(A=25, B=100, C=50, D=10)
+    
+    # Generate SPICE and COMSOL expressions
+    generated_spice_1 = expr_parser_comsol.generate_spice()
+    generated_comsol_1 = expr_parser_comsol.generate_comsol()
 
-    comsol_expr_example_1 = re.sub(COMSOL_ABS_TEMP_PAT, 'T', comsol_expr_example_1)
-    comsol_expr_example_1 = re.sub(COMSOL_TEMP_PAT, 't', comsol_expr_example_1)
-
-    if '^' in comsol_expr_example_1:
-        comsol_expr_example_1 = comsol_expr_example_1.replace('^', '**')
-    print(f"COMSOL Expression: {comsol_expr_example_1}")
-    parser = ExprParser(expr=comsol_expr_example_1, argnames=['t'])
-    result = parser.aeval(0)
-    print(f"COMSOL Result: {result}")
-
+    # Print results
+    print(f"AST: {ast_1}")
+    print(f"Result (aeval): {res_0}")
+    print(f"Result (keval): {res_1}")
+    print(f"Generated SPICE: {generated_spice_1}")
+    print(f"Generated COMSOL: {generated_comsol_1}")
 
 if __name__ == "__main__":
     main()
