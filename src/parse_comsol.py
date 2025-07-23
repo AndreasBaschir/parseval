@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 
 class Variable:
     def __init__(self, s: str):
@@ -37,15 +37,16 @@ def tokenization(s: str):
     tokens = list()
     crt_token = ''
 
+
     # i is used like a pointer through list
     i = 0
     while i < len(s):
-        # handles unary operator '-' at beginning of the string
+        # checks for '-' unary operator at the start of the string
         if i == 0 and s[i] == '-':
             crt_token += s[i]
             i += 1
-    
-        # this part adds an Operator token
+
+        # checks for operators
         if s[i] == '*' or s[i] == '^' or s[i] == '+' or s[i] == '-' or s[i] == '/':
             if crt_token != '':
                 if crt_token[0] == '-':
@@ -54,7 +55,7 @@ def tokenization(s: str):
             crt_token = ''
             tokens.append(Operator(s[i]))
 
-        # this part adds an Paranthesis token
+        # checks for '('
         elif s[i] == '(':
             if crt_token != '':
                 tokens.append(Variable(crt_token))
@@ -64,7 +65,7 @@ def tokenization(s: str):
             if s[i+1] == '-':
                 crt_token += s[i + 1]
                 i += 1
-        # this part adds an Paranthesis token
+        # checks for ')'
         elif s[i] == ')':
             if crt_token != '':
                 if crt_token[0] == '-':
@@ -77,10 +78,10 @@ def tokenization(s: str):
         elif ord(s[i]) <= 0x20:
             pass
 
-        # this part keeps constructing tokens
+        # if not an operator, it is a variable (operand) token
         else:
             crt_token += s[i]
-            # variable_list.append(crt_token)
+
             if (i + 1) == len(s):
                 tokens.append(Variable(crt_token))
         i += 1
@@ -103,14 +104,13 @@ def precedence(operator):
             return 3
     return 0
 
+
 def infix_to_postfix(token_list: list):
     """
     :param token_list: A list of tokens in infix order
     :return: A list of tokens in postfix order
     :rtype: list
     """
-
-    # first part, adding Paranthesis at beggining and end
     token_list.insert(0, Paranthesis('('))
     token_list.append(Paranthesis(')'))
     size = len(token_list)
@@ -202,7 +202,7 @@ class AST:
                     self.left = None
 
     
-    def replaceToken(self, match: str, replace: str):
+    def replace_token(self, match: str, replace: str):
         """
 
         :param match: the Variable token to be replaced
@@ -219,19 +219,21 @@ class AST:
         # tail - recursion
         elif is_operator(self.token):
             if self.token.op == '^':
-                self.base.replaceToken(match, replace)
-                self.power.replaceToken(match, replace)
+                self.base.replace_token(match, replace)
+                self.power.replace_token(match, replace)
             else:
-                self.right.replaceToken(match, replace)
-                self.left.replaceToken(match, replace)
+                self.right.replace_token(match, replace)
+                self.left.replace_token(match, replace)
 
 
     @staticmethod
     def getAST(token_list) -> "AST":
         """
-        :param token_list: A list of tokens in prefix order
-        :return: An AST object constructed from the token list
-        :rtype: AST
+        :param token_list: A list of tokens in prefix order.
+        :return: An AST object constructed from the token list.
+        :rtype: An AST object.
+        Construct an AST from a list of tokens in prefix order.
+        If the list is empty, return None.
         """
         if len(token_list) == 0:
             return None
@@ -294,8 +296,6 @@ class AST:
                 left = self.left.inorderAST()
                 right = self.right.inorderAST()
 
-                # this is a bit tricky, but the main idea is that we have to append a variable or an expression
-                # we need to decide if we put paranthesis or not, based on operations order
                 if is_operator(self.left.token):
                     if precedence(self.token) > precedence(self.left.token):
                         returnList.append(Paranthesis('('))
@@ -323,20 +323,15 @@ class AST:
 
     def __str__(self):
         return ''.join(str(t) for t in self.inorderAST())
- 
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
 
-def parse_comsol(expr: str, var_list: list = None) -> str:
+
+def parse_comsol(expr: str):
     """
-    :param expr: A COMSOL expression string
-    :param var_list: A list to store variable names found in the expression
-    :type var_list: list
-    :return: A SPICE expression string if function executed correctly, and a variable list
+    Convert a COMSOL expression to an AST.
+
+    :param expr: A COMSOL expression string.
+    :return: An AST object representing the COMSOL expression.
+    :rtype: AST
     """
     list_of_tokens = tokenization(expr)
     ast = AST(list_of_tokens)
