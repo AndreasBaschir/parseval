@@ -1,7 +1,7 @@
 import re
 import csv
 
-with open('_testcases.txt', encoding='iso-8859-1') as f:
+with open('../data/_testcases.txt', encoding='iso-8859-1') as f:
     text = f.read()
 
 # <xhublayer name="L3" ... thconf="50/(0.03+1.56e-3*(temp+273.15)+1.65e-6*(temp+273.15)**2)" ... thcapf="(850.9+0.1522*(temp+273.15)-15.82e6/(temp+273.15)**2)*2320" ... />
@@ -55,7 +55,7 @@ for spice_tag, comsol_tag in zip(spice_tags, comsol_tags):
         comsol_density_value
     ])
 
-with open('spice_comsol_values.csv', 'w', newline='') as csvfile:
+with open('../data/spice_comsol_values.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['spice_thconf', 'spice_thcapf', 'comsol_thconf', 'comsol_thcapf', 'comsol_density'])
     writer.writerows(rows)
