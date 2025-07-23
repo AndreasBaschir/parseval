@@ -1,8 +1,8 @@
 # !/usr/bin/env python3
 
-from pyxeval import PyxEval
-from parse_spice import parse_spice
-from parse_comsol import parse_comsol 
+from src.evaluators import PyxEval
+from src.parsers import parse_spice
+from src.parsers import parse_comsol 
 
 class ExprParser:
     def __init__(self, expr: str, varnames: list, language: str = None):
@@ -93,7 +93,7 @@ def main():
     # ((T-0[degC])/1[K])
     # (T/1[K])
     # Example COMSOL usage
-    expr_parser_comsol = ExprParser(expr="((-0.0036)*kappa*T**2+4.6305*T+x-405.38)*3210", 
+    expr_parser_comsol = ExprParser(expr="(104-0.287*((T-0[degC])/1[K])+0.321e-3*((T-0[degC])/1[K])^2)", 
                                        varnames=["T","x"], language="comsol")
     
     # ast from comsol
