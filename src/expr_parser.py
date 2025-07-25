@@ -1,8 +1,7 @@
 # !/usr/bin/env python3
 
-from src.evaluators import PyxEval
-from src.parsers import parse_spice
-from src.parsers import parse_comsol 
+from .evaluators import PyxEval
+from .parsers import parse_spice, parse_comsol, generate_spice
 
 class ExprParser:
     def __init__(self, expr: str, varnames: list, language: str = None):
@@ -39,6 +38,12 @@ class ExprParser:
         pass
 
     def parse_spice(self):
+        """
+        Parses the SPICE expression into an AST.
+
+        :return: The AST representation of the SPICE expression.
+        :rtype: AST object
+        """
         if self.lang == "comsol":
             raise ValueError("parse_spice() cannot be called on 'comsol' expressions!")
         ast = parse_spice(self.expr)
@@ -46,6 +51,12 @@ class ExprParser:
         return ast
 
     def parse_comsol(self):
+        """
+        Parses the COMSOL expression into an AST.
+        
+        :return: The AST representation of the COMSOL expression.
+        :rtype: AST object
+        """
         if self.lang == "spice":
             raise ValueError("parse_comsol() cannot be called on 'spice' expressions!")
         ast = parse_comsol(self.expr)
@@ -53,12 +64,24 @@ class ExprParser:
         return ast
 
     def generate_spice(self):
+        """
+        Generates a SPICE expression from the AST.
+        
+        :return: The SPICE expression as a string.
+        :rtype: str
+        """
         if self.lang == "spice":
             return self.expr
-        spice_generated = ''.join(str(t) for t in self.ast.inorderAST())
+        spice_generated = generate_spice(self.ast)
         return spice_generated
 
     def generate_comsol(self):
+        """
+        Generates a COMSOL expression from the AST.
+
+        :return: The COMSOL expression as a string.
+        :rtype: str
+        """
         if self.lang == "comsol":
             return self.expr
         comsol_generated = ''.join(str(t) for t in self.ast.inorderAST())
@@ -79,14 +102,14 @@ def main():
     
     # Generate SPICE and COMSOL expressions
     generated_spice_0 = expr_parser_spice.generate_spice()
-    generated_comsol_0 = expr_parser_spice.generate_comsol()
+    # generated_comsol_0 = expr_parser_spice.generate_comsol()
 
     # Print results
     print(f"AST: {ast_0}")
     # print(f"Result (aeval): {res_0}")
     # print(f"Result (keval): {res_1}")
     print(f"Generated SPICE: {generated_spice_0}")
-    print(f"Generated COMSOL: {generated_comsol_0}")
+    # print(f"Generated COMSOL: {generated_comsol_0}")
 
     # ========================================================================================================
 
@@ -105,14 +128,14 @@ def main():
     
     # Generate SPICE and COMSOL expressions
     generated_spice_1 = expr_parser_comsol.generate_spice()
-    generated_comsol_1 = expr_parser_comsol.generate_comsol()
+    # generated_comsol_1 = expr_parser_comsol.generate_comsol()
 
     # Print results
     print(f"AST: {ast_1}")
     # print(f"Result (aeval): {res_0}")
     # print(f"Result (keval): {res_1}")
     print(f"Generated SPICE: {generated_spice_1}")
-    print(f"Generated COMSOL: {generated_comsol_1}")
+    # print(f"Generated COMSOL: {generated_comsol_1}")
 
 if __name__ == "__main__":
     main()

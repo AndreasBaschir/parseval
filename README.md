@@ -1,15 +1,105 @@
+# comsol_spice_parser_evaluator
+
+## Overview
+
+`comsol_spice_parser_evaluator` is a Python library and toolset for parsing, evaluating, and converting mathematical expressions between COMSOL and SPICE formats. It provides an `ExprParser` class for handling these tasks.
+
+## Current Features
+
+- Parse SPICE and COMSOL mathematical expressions into ASTs
+- Includes test cases and example scripts
+- Modular design for easy extension and integration
+
+## Features to be Implemented
+
+- Convert expressions between SPICE and COMSOL formats
+- Evaluate expressions numerically with variable substitution
+- Parametrized tests
+- Add `logging` and error handling
+- Add `argparse` for command line usage
+
+## Project Structure
+
 ```
-class ExprParser:
-   def parse_spice(expr, varnames=None):
-      pass
-   def parse_comsol(expr, varnames=None):
-      pass
-   def aeval(*args):
-      pass
-   def keval(**kwargs):
-      pass
-   def generate_spice():
-      pass
-   def generate_comsol():
-      pass 
+comsol_spice_parser_evaluator/
+├── README.md
+├── requirements.txt
+├── data/
+│   └── ... (test cases, CSVs)
+├── scripts/
+│   └── parser_testcases.py
+├── src/
+│   ├── __init__.py
+│   ├── expr_parser.py
+│   ├── evaluators/
+│   │   ├── __init__.py
+│   │   └── pyxeval.py
+│   └── parsers/
+│       ├── spice_parser.py
+│       └── comsol_parser.py
+└── tests/
+    └── test_expr_parser.py
 ```
+
+## Installation
+
+1. Clone the repository:
+   ```sh
+   git clone <repo-url>
+   cd comsol_spice_parser_evaluator
+   ```
+2. (Optional) Create and activate a virtual environment:
+   ```sh
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+`expr_parser.py` is the main entry point for parsing and evaluating expressions. It has 6 main methods:
+
+```python
+    def aeval(self, *args): # TO BE IMPLEMENTED
+    def keval(self, **kwargs): # TO BE IMPLEMENTED
+    def parse_spice(self): 
+    def parse_comsol(self):
+    def generate_spice(self):
+    def generate_comsol(self):
+```
+
+### As a Library
+
+```python
+from src.expr_parser import ExprParser
+
+# Parse a SPICE expression
+parser = ExprParser("(-0.0036*(temp+273.15)**2+4.6305*(temp+273.15)-405.38)*3210", ["temp"], language="spice")
+result = parser.aeval(25)  # Evaluate with temp=25
+```
+
+### From the Command Line
+
+You can run the following example scripts:
+
+```sh
+python3 -m src.expr_parser
+python3 src/parsers/spice_parser.py
+python3 src/parsers/comsol_parser.py
+```
+
+## Development
+
+- Source code is in the `src/` directory.
+- Add new parsers or evaluators in their respective subfolders.
+- Test cases and data are in `data/` and `tests/`.
+
+## Contributing
+
+Pull requests and issues are welcome! Please:
+- Follow PEP8 style guidelines
+- Add tests for new features
+- Document your code

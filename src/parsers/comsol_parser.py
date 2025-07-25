@@ -1,5 +1,10 @@
 # !/usr/bin/env python3
 
+import re
+
+COMSOL_ABS_TEMP_PAT = re.compile(r'\(\s*T\s*\/\s*1\s*\[\s*K\s*\]\s*\)')
+COMSOL_TEMP_PAT = re.compile(r'\(\(T-0\[degC\]\)/1\[K\]\)')
+
 class Variable:
     def __init__(self, s: str):
         self.var = s
@@ -324,6 +329,20 @@ class AST:
     def __str__(self):
         return ''.join(str(t) for t in self.inorderAST())
 
+def generate_spice(ast: AST):
+    """
+    Generate a SPICE expression from an AST.
+
+    :param ast: The AST to convert.
+    :return: A SPICE expression string.
+    """
+    expr = ast.inorderAST()
+    spice_generated = ''.join(str(t) for t in expr)
+    spice_return_0 = re.sub(r'\^', '**', spice_generated)
+    spice_return_1 = COMSOL_ABS_TEMP_PAT.sub('tempa', spice_return_0)
+    spice_return_2 = COMSOL_TEMP_PAT.sub('temp', spice_return_1)
+    spice_expr = re.sub('tempa','(temp+273.15)', spice_return_2)
+    return spice_expr
 
 def parse_comsol(expr: str):
     """
