@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 
 import re
 
@@ -328,6 +328,10 @@ class AST:
 
     def __str__(self):
         return ''.join(str(t) for t in self.inorderAST())
+    
+    def __repr__(self):
+        attrs = ', '.join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        return f"{self.__class__.__name__}({attrs})"
 
 def generate_spice(ast: AST):
     """
@@ -355,6 +359,7 @@ def parse_comsol(expr: str):
     expr = re.sub(COMSOL_TEMP_PAT, 'T', expr)
     list_of_tokens = tokenization(expr)
     ast = AST(list_of_tokens)
+    print(ast)
     return ast
 
 
