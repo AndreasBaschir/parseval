@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-import ast
 import re
 from .evaluators import PyxEval
 from .parsers import parse_spice, parse_comsol, generate_spice, generate_comsol
+
+COMSOL_ABS_TEMP_PAT = re.compile(r'\(\s*T\s*\/\s*1\s*\[\s*K\s*\]\s*\)')
+COMSOL_TEMP_PAT = re.compile(r'\(\(T-0\[degC\]\)/1\[K\]\)')
 
 class ExprParser:
     def __init__(self, expr: str, varnames: list, initial_lang: str = None):
@@ -14,25 +16,30 @@ class ExprParser:
         :param varnames: A list of variable names used in the expression.
         :param language: The language of the expression, 'spice' or 'comsol'.
         """
-        self.expr = expr
-        self.varnames = varnames
         if not isinstance(varnames, list):
             raise TypeError("varnames must be a list of variable names")
+        self.varnames = varnames
+        self.expr = expr
         self.initial_expr_lang = initial_lang
-        self.spice_expr = None
-        self.comsol_expr = None
         self.ast = None
         if initial_lang.lower() not in ['spice', 'comsol']:
             raise ValueError("Language must be either 'spice' or 'comsol'")
         else:
             if initial_lang == 'spice':
                 self.spice_expr = expr
+                self.comsol_expr = None
                 self.ast = self.parse_spice()
+                self.evaluator = PyxEval(self.spice_expr, self.varnames, language='python')
             elif initial_lang == 'comsol':
+                self.spice_expr = None
                 self.comsol_expr = expr
+                s = expr
+                sa = COMSOL_ABS_TEMP_PAT.sub('T', s)
+                sb = COMSOL_TEMP_PAT.sub('(T-273.15)', sa)
+                sc = sb.replace('^', '**')
+                to_be_evaluated = sc
                 self.ast = self.parse_comsol()
-                self.spice_expr = self.generate_spice()
-        self.evaluator = PyxEval(self.spice_expr, self.varnames, language='python')
+                self.evaluator = PyxEval(to_be_evaluated, self.varnames, language='python')
 
     def aeval(self, *args):
         """
@@ -134,7 +141,7 @@ class ExprParser:
         :rtype: str
         """
         if self.initial_expr_lang == "spice":
-            return self.expr
+            return self.spice_expr
         spice_generated = generate_spice(self.ast)
         return spice_generated
 
@@ -146,7 +153,7 @@ class ExprParser:
         :rtype: str
         """
         if self.initial_expr_lang == "comsol":
-            return self.expr
+            return self.comsol_expr
         comsol_generated = generate_comsol(self.ast)
         return comsol_generated
 
@@ -170,7 +177,7 @@ def main():
 
     # Example COMSOL usage
     expr_parser_comsol = ExprParser(expr="(50/(0.03+1.56e-3*((T-0[degC])/1[K])+1.65e-6*(T/1[K])^2))", 
-                                       varnames=["T"], initial_lang="comsol")
+                                       varnames=['T'], initial_lang="comsol")
     
     # Evaluate the COMSOL expression
     res_0 = expr_parser_comsol.aeval(25)
