@@ -339,9 +339,9 @@ def generate_spice(ast: AST):
     ast.replace_token('T_ABS', '(temp+273.15)')
     ast.replace_token('T', 'temp')
     expr = ast.inorderAST()
-    spice_generated = ''.join(str(t) for t in expr)
-    spice_generated = re.sub(r'\^','**', spice_generated)  # Replace '^' with '**' for Python syntax
-    return spice_generated
+    spice_generated_0 = ''.join(str(t) for t in expr)
+    spice_generated_1 = re.sub(r'\^','**', spice_generated_0)  # Replace '^' with '**' for Python syntax
+    return spice_generated_1
 
 def parse_comsol(expr: str):
     """

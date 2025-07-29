@@ -1,5 +1,9 @@
 # !/usr/bin/env python3
 
+import re
+
+SPICE_ABS_TEMP_PAT = re.compile(r' *\(? *temp *\+ *273.15 *\)? *')
+
 class Variable:
     def __init__(self, s: str):
         self.var = s
@@ -345,8 +349,11 @@ def generate_comsol(ast: AST):
     :return: A COMSOL expression string.
     """
     expr = ast.inorderAST()
-    comsol_generated = ''.join(str(t) for t in expr)
-    return comsol_generated
+    comsol_generated_0 = ''.join(str(t) for t in expr)
+    comsol_generated_1 = SPICE_ABS_TEMP_PAT.sub('(T/1[K])', comsol_generated_0)
+    comsol_generated_2 = re.sub('temp', '((T-0[degC])/1[K])', comsol_generated_1)
+    comsol_generated_3 = re.sub(r'\*\*', r'^', comsol_generated_2)
+    return comsol_generated_3
 
 def parse_spice(expr: str):
     """
@@ -363,9 +370,10 @@ def parse_spice(expr: str):
 
 # Example usage
 def main():
-    spice_expression = "(104-0.287*temp+0.321e-3*temp**2)"
+    spice_expression = "(104-0.287*temp+0.321e-3*(temp+273.15)**2)"
     ast = parse_spice(spice_expression)
     print("SPICE Expression from AST:", ast)
+    print("Generated COMSOL Expression:", generate_comsol(ast))
 
 if __name__ == "__main__":
     main()
