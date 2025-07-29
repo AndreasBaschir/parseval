@@ -337,6 +337,16 @@ class AST:
     def __str__(self):
         return ''.join(str(t) for t in self.inorderAST())
 
+def generate_comsol(ast: AST): 
+    """
+    Generate a COMSOL expression from an AST.
+
+    :param ast: The AST to convert.
+    :return: A COMSOL expression string.
+    """
+    expr = ast.inorderAST()
+    comsol_generated = ''.join(str(t) for t in expr)
+    return comsol_generated
 
 def parse_spice(expr: str):
     """
@@ -353,7 +363,7 @@ def parse_spice(expr: str):
 
 # Example usage
 def main():
-    spice_expression = "(-0.0036*(temp+273.15)**2+4.6305*(temp+273.15)-405.38)*3210"
+    spice_expression = "(104-0.287*temp+0.321e-3*temp**2)"
     ast = parse_spice(spice_expression)
     print("SPICE Expression from AST:", ast)
 
