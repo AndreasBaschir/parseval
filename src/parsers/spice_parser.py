@@ -1,4 +1,8 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
+
+import re
+
+SPICE_ABS_TEMP_PAT = re.compile(r' *\(? *temp *\+ *273.15 *\)? *')
 
 class Variable:
     def __init__(self, s: str):
@@ -337,6 +341,19 @@ class AST:
     def __str__(self):
         return ''.join(str(t) for t in self.inorderAST())
 
+def generate_comsol(ast: AST): 
+    """
+    Generate a COMSOL expression from an AST.
+
+    :param ast: The AST to convert.
+    :return: A COMSOL expression string.
+    """
+    expr = ast.inorderAST()
+    comsol_generated_0 = ''.join(str(t) for t in expr)
+    comsol_generated_1 = SPICE_ABS_TEMP_PAT.sub('(T/1[K])', comsol_generated_0)
+    comsol_generated_2 = re.sub('temp', '((T-0[degC])/1[K])', comsol_generated_1)
+    comsol_generated_3 = re.sub(r'\*\*', r'^', comsol_generated_2)
+    return comsol_generated_3
 
 def parse_spice(expr: str):
     """
@@ -353,9 +370,10 @@ def parse_spice(expr: str):
 
 # Example usage
 def main():
-    spice_expression = "(-0.0036*(temp+273.15)**2+4.6305*(temp+273.15)-405.38)*3210"
+    spice_expression = "(104-0.287*temp+0.321e-3*(temp+273.15)**2)"
     ast = parse_spice(spice_expression)
     print("SPICE Expression from AST:", ast)
+    print("Generated COMSOL Expression:", generate_comsol(ast))
 
 if __name__ == "__main__":
     main()

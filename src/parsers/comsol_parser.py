@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 
 import re
 
@@ -328,6 +328,10 @@ class AST:
 
     def __str__(self):
         return ''.join(str(t) for t in self.inorderAST())
+    
+    def __repr__(self):
+        attrs = '\n'.join(f"{k}={v!r}" for k, v in self.__dict__.items())
+        return f"{self.__class__.__name__}({attrs})"
 
 def generate_spice(ast: AST):
     """
@@ -336,13 +340,14 @@ def generate_spice(ast: AST):
     :param ast: The AST to convert.
     :return: A SPICE expression string.
     """
+    
     expr = ast.inorderAST()
-    spice_generated = ''.join(str(t) for t in expr)
-    spice_return_0 = re.sub(r'\^', '**', spice_generated)
-    spice_return_1 = COMSOL_ABS_TEMP_PAT.sub('tempa', spice_return_0)
-    spice_return_2 = COMSOL_TEMP_PAT.sub('temp', spice_return_1)
-    spice_expr = re.sub('tempa','(temp+273.15)', spice_return_2)
-    return spice_expr
+    s = ''.join(str(t) for t in expr)
+    print(s)
+    sa = re.sub('(T-273.15)', 'temp', s)  # Replace COMSOL absolute temperature notation
+    sb = re.sub('T', '(temp+273.15)', sa)  
+    spice_generated = re.sub(r'\^','**', sb)  # Replace '^' with '**' for Python syntax
+    return spice_generated
 
 def parse_comsol(expr: str):
     """
@@ -352,16 +357,20 @@ def parse_comsol(expr: str):
     :return: An AST object representing the COMSOL expression.
     :rtype: AST
     """
+    expr = re.sub(COMSOL_ABS_TEMP_PAT, 'T', expr)
+    expr = re.sub(COMSOL_TEMP_PAT, '(T-273.15)', expr)
     list_of_tokens = tokenization(expr)
     ast = AST(list_of_tokens)
+    print(ast)
     return ast
 
 
 # Example usage
 def main():
-    comsol_expression = "6e6*(T/1[K])^(-1.702)"
+    comsol_expression = "(104-0.287*(T/1[K])+0.321e-3*((T-0[degC])/1[K])^2)"
     ast = parse_comsol(comsol_expression)
-    print("COMSOL Expression from AST:", ast)
+    print("COMSOL Expression from AST:", ast.__repr__())
+    print("SPICE Expression from AST:", generate_spice(ast))
 
 if __name__ == "__main__":
     main()
