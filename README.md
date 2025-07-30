@@ -7,14 +7,14 @@
 ## Current Features
 
 - Parse SPICE and COMSOL mathematical expressions into ASTs
+- Generate expressions in both SPICE and COMSOL formats
+- Evaluate expressions numerically with variable substitution
 - Includes test cases and example scripts
 - Modular design for easy extension and integration
 
 ## Features to be Implemented
 
-- Convert expressions between SPICE and COMSOL formats
-- Evaluate expressions numerically with variable substitution
-- Parametrized tests
+- Parametrized tests to be used with `pytest`
 - Add `logging` and error handling
 - Add `argparse` for command line usage
 
@@ -22,6 +22,7 @@
 
 ```
 comsol_spice_parser_evaluator/
+├── .gitignore
 ├── README.md
 ├── requirements.txt
 ├── data/
@@ -35,6 +36,7 @@ comsol_spice_parser_evaluator/
 │   │   ├── __init__.py
 │   │   └── pyxeval.py
 │   └── parsers/
+│       ├── __init__.py
 │       ├── spice_parser.py
 │       └── comsol_parser.py
 └── tests/
@@ -60,15 +62,24 @@ comsol_spice_parser_evaluator/
 
 ## Usage
 
-`expr_parser.py` is the main entry point for parsing and evaluating expressions. It has 6 main methods:
+`expr_parser.py` is the main entry point for parsing and evaluating expressions. It has 6 main methods besides the constructor:
 
 ```python
-    def aeval(self, *args): # TO BE IMPLEMENTED
-    def keval(self, **kwargs): # TO BE IMPLEMENTED
-    def parse_spice(self): 
-    def parse_comsol(self):
-    def generate_spice(self):
-    def generate_comsol(self):
+class ExprParser:
+   def __init__(self, expr: str, varnames: list, initial_lang: str = None):
+      ...
+   def aeval(self, *args):
+      ...
+   def keval(self, **kwargs):
+      ...
+   def parse_spice(self):
+      ...
+   def parse_comsol(self):
+      ...
+   def generate_spice(self):
+      ...
+   def generate_comsol(self):
+   ...
 ```
 
 ### As a Library
@@ -96,6 +107,7 @@ python3 src/parsers/comsol_parser.py
 - Source code is in the `src/` directory.
 - Add new parsers or evaluators in their respective subfolders.
 - Test cases and data are in `data/` and `tests/`.
+- Add imports to `__init__.py` files as needed to expose functionality.
 
 ## Contributing
 
