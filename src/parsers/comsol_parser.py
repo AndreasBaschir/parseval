@@ -340,14 +340,13 @@ def generate_spice(ast: AST):
     :param ast: The AST to convert.
     :return: A SPICE expression string.
     """
-    ast.replace_token('T', '(temp+273.15')  # Replace 'T' with 'temp'
+    
     expr = ast.inorderAST()
     s = ''.join(str(t) for t in expr)
     print(s)
-    # sa = re.sub(COMSOL_ABS_TEMP_PAT, 'temp', s)  # Replace COMSOL absolute temperature notation
-    # print(sa)
-    # sb = re.sub(COMSOL_TEMP_PAT, '(temp+273.15)', sa)  #
-    spice_generated = re.sub(r'\^','**', s)  # Replace '^' with '**' for Python syntax
+    sa = re.sub('(T-273.15)', 'temp', s)  # Replace COMSOL absolute temperature notation
+    sb = re.sub('T', '(temp+273.15)', sa)  
+    spice_generated = re.sub(r'\^','**', sb)  # Replace '^' with '**' for Python syntax
     return spice_generated
 
 def parse_comsol(expr: str):

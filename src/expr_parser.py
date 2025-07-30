@@ -33,13 +33,11 @@ class ExprParser:
             elif initial_lang == 'comsol':
                 self.spice_expr = None
                 self.comsol_expr = expr
-                s = expr
-                sa = COMSOL_ABS_TEMP_PAT.sub('T', s)
-                sb = COMSOL_TEMP_PAT.sub('(T-273.15)', sa)
-                sc = sb.replace('^', '**')
-                to_be_evaluated = sc
                 self.ast = self.parse_comsol()
-                self.evaluator = PyxEval(to_be_evaluated, self.varnames, language='python')
+                to_be_eval_0 = "".join(str(t) for t in self.ast.inorderAST())
+                to_be_eval = re.sub(r'\^','**', to_be_eval_0)  # Replace '^' with '**' for Python syntax
+                print(f"Python expression to be evaluated: {to_be_eval}")
+                self.evaluator = PyxEval(to_be_eval, self.varnames, language='python')
 
     def aeval(self, *args):
         """
@@ -176,7 +174,7 @@ def main():
     print(f"Generated COMSOL: {generated_comsol_0}")
 
     # Example COMSOL usage
-    expr_parser_comsol = ExprParser(expr="(50/(0.03+1.56e-3*((T-0[degC])/1[K])+1.65e-6*(T/1[K])^2))", 
+    expr_parser_comsol = ExprParser(expr="(104-0.287*(T/1[K])+0.321e-3*(T/1[K])^2)", 
                                        varnames=['T'], initial_lang="comsol")
     
     # Evaluate the COMSOL expression
