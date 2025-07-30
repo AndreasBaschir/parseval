@@ -69,3 +69,30 @@ class Test():
         assert res_2 == res_6, f"Row {row_index} failed: SPICE specific heat capacity aeval != COMSOL specific heat capacity aeval"
         assert res_3 == res_7, f"Row {row_index} failed: SPICE specific heat capacity keval != COMSOL specific heat capacity keval"
     
+    @pytest.mark.parametrize("row_index, spice_thconf, spice_thcapf, comsol_thconf, comsol_thcapf, comsol_density", DATA, ids=IDS)
+    def test_generation(self, row_index, spice_thconf, spice_thcapf, comsol_thconf, comsol_thcapf, comsol_density):
+        """
+        Tests the generation of SPICE and COMSOL expressions from the AST.
+        """
+        
+        expr_parser_spice_thconf = ExprParser(expr=spice_thconf,
+                                varnames=["temp"], initial_lang="spice")
+        
+        expr_parser_spice_thcapf = ExprParser(expr=spice_thcapf,
+                                varnames=["temp"], initial_lang="spice")
+
+        expr_parser_comsol_thconf = ExprParser(expr=comsol_thconf,
+                                varnames=["T"], initial_lang="comsol")
+
+        expr_parser_comsol_thcapf = ExprParser(expr=comsol_thcapf + '*' + comsol_density,
+                                varnames=["T"], initial_lang="comsol")
+
+        generated_comsol_thconf = expr_parser_spice_thconf.generate_comsol()
+        generated_comsol_thcapf = expr_parser_spice_thcapf.generate_comsol()
+        generated_spice_thconf = expr_parser_comsol_thconf.generate_spice()
+        generated_spice_thcapf = expr_parser_comsol_thcapf.generate_spice()
+
+        assert generated_comsol_thconf == comsol_thconf, f"Row {row_index} failed: expected {comsol_thconf}, got {generated_comsol_thconf}"
+        assert generated_comsol_thcapf == comsol_thcapf + '*' + comsol_density, f"Row {row_index} failed: expected {comsol_thcapf + '*' + comsol_density}, got {generated_comsol_thcapf}"
+        assert generated_spice_thconf == spice_thconf, f"Row {row_index} failed: expected {spice_thconf}, got {generated_spice_thconf}"
+        assert generated_spice_thcapf == spice_thcapf, f"Row {row_index} failed: expected {spice_thcapf}, got {generated_spice_thcapf}"
