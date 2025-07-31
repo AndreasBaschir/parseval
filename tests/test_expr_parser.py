@@ -92,7 +92,7 @@ class Test():
         generated_spice_thconf = expr_parser_comsol_thconf.generate_spice()
         generated_spice_thcapf = expr_parser_comsol_thcapf.generate_spice()
 
-        assert generated_comsol_thconf == comsol_thconf, f"Row {row_index} failed: expected {comsol_thconf}, got {generated_comsol_thconf}"
+        assert '(' + generated_comsol_thconf + ')' == comsol_thconf, f"Row {row_index} failed: expected {comsol_thconf}, got {generated_comsol_thconf}"
         assert generated_comsol_thcapf == comsol_thcapf + '*' + comsol_density, f"Row {row_index} failed: expected {comsol_thcapf + '*' + comsol_density}, got {generated_comsol_thcapf}"
         assert generated_spice_thconf == spice_thconf, f"Row {row_index} failed: expected {spice_thconf}, got {generated_spice_thconf}"
         assert generated_spice_thcapf == spice_thcapf, f"Row {row_index} failed: expected {spice_thcapf}, got {generated_spice_thcapf}"
