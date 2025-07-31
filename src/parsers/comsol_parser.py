@@ -91,7 +91,7 @@ def tokenization(s: str):
                 tokens.append(Variable(crt_token))
         i += 1
 
-    print([x.__str__() for x in tokens])
+    # print([x.__str__() for x in tokens])
     return tokens
 
 
@@ -343,8 +343,7 @@ def generate_spice(ast: AST):
     
     expr = ast.inorderAST()
     s = ''.join(str(t) for t in expr)
-    print(s)
-    sa = re.sub('(T-273.15)', 'temp', s)  # Replace COMSOL absolute temperature notation
+    sa = re.sub(r'\(T-273.15\)', 'temp', s)  # Replace COMSOL absolute temperature notation
     sb = re.sub('T', '(temp+273.15)', sa)  
     spice_generated = re.sub(r'\^','**', sb)  # Replace '^' with '**' for Python syntax
     return spice_generated
@@ -361,7 +360,6 @@ def parse_comsol(expr: str):
     expr = re.sub(COMSOL_TEMP_PAT, '(T-273.15)', expr)
     list_of_tokens = tokenization(expr)
     ast = AST(list_of_tokens)
-    print(ast)
     return ast
 
 

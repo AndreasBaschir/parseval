@@ -103,7 +103,7 @@ def tokenization(s: str):
                 tokens.append(Variable(crt_token))
         i += 1
 
-    print([x.__str__() for x in tokens])
+    # print([x.__str__() for x in tokens])
     return tokens
 
 

@@ -36,7 +36,6 @@ class ExprParser:
                 self.ast = self.parse_comsol()
                 to_be_eval_0 = "".join(str(t) for t in self.ast.inorderAST())
                 to_be_eval = re.sub(r'\^','**', to_be_eval_0)  # Replace '^' with '**' for Python syntax
-                print(f"Python expression to be evaluated: {to_be_eval}")
                 self.evaluator = PyxEval(to_be_eval, self.varnames, language='python')
 
     def aeval(self, *args):
@@ -158,7 +157,7 @@ class ExprParser:
 def main():
 
     # Example SPICE usage
-    expr_parser_spice = ExprParser(expr="81.5-0.155*temp+0.133e-3*temp**2",
+    expr_parser_spice = ExprParser(expr="104-0.287*temp+0.321e-3*temp**2",
                              varnames=["temp"], initial_lang="spice")
 
     # Evaluate the SPICE expression
@@ -174,13 +173,13 @@ def main():
     print(f"Generated COMSOL: {generated_comsol_0}")
 
     # Example COMSOL usage
-    expr_parser_comsol = ExprParser(expr="(104-0.287*(T/1[K])+0.321e-3*(T/1[K])^2)", 
+    expr_parser_comsol = ExprParser(expr="(104-0.287*((T-0[degC])/1[K])+0.321e-3*((T-0[degC])/1[K])^2)", 
                                        varnames=['T'], initial_lang="comsol")
     
     # Evaluate the COMSOL expression
-    res_0 = expr_parser_comsol.aeval(25)
+    res_0 = expr_parser_comsol.aeval(25+273.15)  # Convert 25 degrees Celsius to Kelvin
     print(f"Result (aeval): {res_0}")
-    res_1 = expr_parser_comsol.keval(T=25)
+    res_1 = expr_parser_comsol.keval(T=25+273.15)
     print(f"Result (keval): {res_1}")
     
     # Generate SPICE and COMSOL expressions
