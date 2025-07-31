@@ -36,7 +36,6 @@ class ExprParser:
                 self.ast = self.parse_comsol()
                 to_be_eval_0 = "".join(str(t) for t in self.ast.inorderAST())
                 to_be_eval = re.sub(r'\^','**', to_be_eval_0)  # Replace '^' with '**' for Python syntax
-                print(f"Python expression to be evaluated: {to_be_eval}")
                 self.evaluator = PyxEval(to_be_eval, self.varnames, language='python')
 
     def aeval(self, *args):
