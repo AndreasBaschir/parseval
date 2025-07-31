@@ -11,10 +11,10 @@
 - Evaluate expressions numerically with variable substitution
 - Includes test cases and example scripts
 - Modular design for easy extension and integration
+- Parametrized tests to be used with `pytest`
 
 ## Features to be Implemented
 
-- Parametrized tests to be used with `pytest`
 - Add `logging` and error handling
 - Add `argparse` for command line usage
 
@@ -46,17 +46,17 @@ comsol_spice_parser_evaluator/
 ## Installation
 
 1. Clone the repository:
-   ```sh
+   ```bash
    git clone <repo-url>
    cd comsol_spice_parser_evaluator
    ```
 2. (Optional) Create and activate a virtual environment:
-   ```sh
+   ```bash
    python3 -m venv venv
    source venv/bin/activate
    ```
 3. Install dependencies:
-   ```sh
+   ```bash
    pip install -r requirements.txt
    ```
 
@@ -96,11 +96,27 @@ result = parser.aeval(25)  # Evaluate with temp=25
 
 You can run the following example scripts:
 
-```sh
+```bash
 python3 -m src.expr_parser
 python3 src/parsers/spice_parser.py
 python3 src/parsers/comsol_parser.py
 ```
+
+## Testing
+
+This project uses [pytest](https://docs.pytest.org/) for testing. To run all tests, simply execute:
+
+```bash
+pytest
+```
+
+The main test suite is in `tests/test_expr_parser.py` and covers two types of tests:
+
+1. **Evaluation Tests**: These tests check that the `ExprParser` evaluates SPICE and COMSOL expressions correctly and consistently, using both positional (`aeval`) and keyword (`keval`) argument evaluation. They also compare results between SPICE and COMSOL forms for equivalence.
+
+2. **Generation Tests**: These tests verify that the `ExprParser` can generate correct SPICE and COMSOL expressions from the AST, ensuring round-trip conversion between formats is accurate.
+
+Both test types are parametrized using data from `data/spice_comsol_values.csv`.
 
 ## Development
 
