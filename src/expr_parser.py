@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import argparse
 from .evaluators import PyxEval
 from .parsers import parse_spice, parse_comsol, generate_spice, generate_comsol
 
@@ -155,39 +156,60 @@ class ExprParser:
         return comsol_generated
 
 def main():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Parse, evaluate, and convert SPICE/COMSOL expressions.\n"
+            "COMSOL temperature 'T' must be in Kelvin, e.g. 25 degrees Celsius is 298.15 K.\n\n"
+            "Examples:\n"
+            "  python3 -m src.expr_parser \"(-0.0123*(temp+273.15)**2+1.2345*(temp+273.15)-456.78)*4321\" --varnames temp --lang spice --aeval 25\n"
+            "  python3 -m src.expr_parser \"(33/(0.33+1.33e-3*((T-0[degC])/1[K])+1.33e-3*(T/1[K])^2))\" --varnames T --lang comsol --keval T=298.15\n"
+            "  python3 -m src.expr_parser \"99.9-0.222*temp+0.444e-5*temp**2\" --varnames temp --lang spice --generate comsol\n"
+        ),
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument("expr", help="The expression to parse and evaluate.")
+    parser.add_argument(
+        "--varnames", nargs="+", required=True,
+        help="Variable names used in the expression (e.g. temp T)."
+    )
+    parser.add_argument(
+        "--lang", choices=["spice", "comsol"], required=True,
+        help="Expression language: 'spice' or 'comsol'."
+    )
+    parser.add_argument(
+        "-aev", "--aeval", nargs="+", type=float,
+        help="Values for variables (positional, for aeval)."
+    )
+    parser.add_argument(
+        "-kev", "--keval", nargs="+",
+        help="Keyword values for variables (format: var=val, for keval)."
+    )
+    parser.add_argument(
+        "-gen", "--generate", choices=["spice", "comsol"],
+        help="Generate expression in target format."
+    )
 
-    # Example SPICE usage
-    expr_parser_spice = ExprParser(expr="104-0.287*temp+0.321e-3*temp**2",
-                             varnames=["temp"], initial_lang="spice")
+    args = parser.parse_args()
 
-    # Evaluate the SPICE expression
-    res_0 = expr_parser_spice.aeval(25)
-    print(f"Result (aeval): {res_0}")
-    res_1 = expr_parser_spice.keval(temp=25)
-    print(f"Result (keval): {res_1}")    
+    expr_parser = ExprParser(expr=args.expr, varnames=args.varnames, initial_lang=args.lang)
 
-    # Generate SPICE and COMSOL expressions
-    generated_spice_0 = expr_parser_spice.generate_spice()
-    print(f"Generated SPICE: {generated_spice_0}")
-    generated_comsol_0 = expr_parser_spice.generate_comsol()
-    print(f"Generated COMSOL: {generated_comsol_0}")
+    print(f"Parsed expression: {expr_parser.expr}")
 
-    # Example COMSOL usage
-    expr_parser_comsol = ExprParser(expr="(104-0.287*((T-0[degC])/1[K])+0.321e-3*((T-0[degC])/1[K])^2)", 
-                                       varnames=['T'], initial_lang="comsol")
-    
-    # Evaluate the COMSOL expression
-    res_0 = expr_parser_comsol.aeval(25+273.15)  # Convert 25 degrees Celsius to Kelvin
-    print(f"Result (aeval): {res_0}")
-    res_1 = expr_parser_comsol.keval(T=25+273.15)
-    print(f"Result (keval): {res_1}")
-    
-    # Generate SPICE and COMSOL expressions
-    generated_spice_1 = expr_parser_comsol.generate_spice()
-    print(f"Generated SPICE: {generated_spice_1}")
-    generated_comsol_1 = expr_parser_comsol.generate_comsol()
-    print(f"Generated COMSOL: {generated_comsol_1}")
+    if args.aeval:
+        result = expr_parser.aeval(*args.aeval)
+        print(f"aeval result: {result}")
 
-    
+    if args.keval:
+        kwargs = dict(kv.split("=") for kv in args.keval)
+        # Convert values to float
+        kwargs = {k: float(v) for k, v in kwargs.items()}
+        result = expr_parser.keval(**kwargs)
+        print(f"keval result: {result}")
+
+    if args.generate == "spice":
+        print("Generated SPICE:", expr_parser.generate_spice())
+    elif args.generate == "comsol":
+        print("Generated COMSOL:", expr_parser.generate_comsol())
+
 if __name__ == "__main__":
     main()

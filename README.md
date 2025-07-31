@@ -92,12 +92,45 @@ parser = ExprParser("(-0.0036*(temp+273.15)**2+4.6305*(temp+273.15)-405.38)*3210
 result = parser.aeval(25)  # Evaluate with temp=25
 ```
 
+
 ### From the Command Line
 
-You can run the following example scripts:
+
+You can use the command-line interface provided by `expr_parser.py` via `argparse` to parse, evaluate, and convert expressions directly from your terminal.
+
+**Example usage:**
 
 ```bash
-python3 -m src.expr_parser
+# Evaluate a SPICE expression at temp=25 (positional argument)
+python3 -m src.expr_parser "(-0.0123*(temp+273.15)**2+1.2345*(temp+273.15)-456.78)*4321" --varnames temp --lang spice --aeval 25
+Output:
+  Parsed expression: (-0.0123*(temp+273.15)**2+1.2345*(temp+273.15)-456.78)*4321
+  aeval result: -5107866.72488175
+
+# Evaluate a COMSOL expression at T=298.15 (keyword argument)
+python3 -m src.expr_parser "(33/(0.33+1.33e-3*((T-0[degC])/1[K])+1.33e-3*(T/1[K])^2))" --varnames T --lang comsol --keval T=298.15
+Output:
+  Parsed expression: (33/(0.33+1.33e-3*((T-0[degC])/1[K])+1.33e-3*(T/1[K])^2))
+  keval result: 0.2782661444061141
+
+# Generate a COMSOL expression from a SPICE input
+python3 -m src.expr_parser "99.9-0.222*temp+0.444e-5*temp**2" --varnames temp --lang spice --generate comsol
+Output:
+  Parsed expression: 99.9-0.222*temp+0.444e-5*temp**2
+  Generated COMSOL: 99.9-0.222*((T-0[degC])/1[K])+0.444e-5*((T-0[degC])/1[K])^2
+```
+
+**Arguments:**
+- `expr` (positional): The expression to parse and evaluate.
+- `--varnames`: List of variable names used in the expression (required).
+- `--lang`: Expression language, either `spice` or `comsol` (required).
+- `-aev`, `--aeval`: Values for variables (positional, for aeval).
+- `-kev`, `--keval`: Keyword values for variables (format: var=val, for keval).
+- `-gen`, `--generate`: Generate the expression in the target format (`spice` or `comsol`).
+
+You can also run the following example scripts:
+
+```bash
 python3 src/parsers/spice_parser.py
 python3 src/parsers/comsol_parser.py
 ```
