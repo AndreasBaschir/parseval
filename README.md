@@ -1,8 +1,8 @@
-# comsol_spice_parser_evaluator
+# parseval
 
 ## Overview
 
-`comsol_spice_parser_evaluator` is a Python library and toolset for parsing, evaluating, and converting mathematical expressions between COMSOL and SPICE formats. It provides an `ExprParser` class for handling these tasks.
+`parseval` is a Python library and toolset for parsing, evaluating, and converting mathematical expressions between COMSOL and SPICE formats. It provides an `ExprParser` class for handling these tasks.
 
 ## Current Features
 
@@ -12,16 +12,16 @@
 - Includes test cases and example scripts
 - Modular design for easy extension and integration
 - Parametrized tests to be used with `pytest`
+- Add `argparse` for command line usage
 
 ## Features to be Implemented
 
 - Add `logging` and error handling
-- Add `argparse` for command line usage
 
 ## Project Structure
 
 ```
-comsol_spice_parser_evaluator/
+parseval/
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
@@ -48,7 +48,7 @@ comsol_spice_parser_evaluator/
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd comsol_spice_parser_evaluator
+   cd parseval
    ```
 2. (Optional) Create and activate a virtual environment:
    ```bash
@@ -124,9 +124,9 @@ Output:
 - `expr` (positional): The expression to parse and evaluate.
 - `--varnames`: List of variable names used in the expression (required).
 - `--lang`: Expression language, either `spice` or `comsol` (required).
-- `-aev`, `--aeval`: Values for variables (positional, for aeval).
-- `-kev`, `--keval`: Keyword values for variables (format: var=val, for keval).
-- `-gen`, `--generate`: Generate the expression in the target format (`spice` or `comsol`).
+- `-a`, `--aeval`: Values for variables (positional, for aeval).
+- `-k`, `--keval`: Keyword values for variables (format: var=val, for keval).
+- `-g`, `--generate`: Generate the expression in the target format (`spice` or `comsol`).
 
 You can also run the following example scripts:
 
