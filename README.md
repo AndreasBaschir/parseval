@@ -88,7 +88,7 @@ class ExprParser:
 from src.expr_parser import ExprParser
 
 # Parse a SPICE expression
-parser = ExprParser("(-0.0036*(temp+273.15)**2+4.6305*(temp+273.15)-405.38)*3210", ["temp"], language="spice")
+parser = ExprParser("(-0.1111*(temp+273.15)**2+5.5555*(temp+273.15)-444.44)*3333", ["temp"], initial_lang ="spice")
 result = parser.aeval(25)  # Evaluate with temp=25
 ```
 
