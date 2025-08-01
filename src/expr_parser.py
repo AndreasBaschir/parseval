@@ -23,21 +23,20 @@ class ExprParser:
         self.expr = expr
         self.initial_expr_lang = initial_lang
         self.ast = None
-        if initial_lang.lower() not in ['spice', 'comsol']:
-            raise ValueError("Language must be either 'spice' or 'comsol'")
+        if initial_lang.casefold() == 'spice':
+            self.spice_expr = expr
+            self.comsol_expr = None
+            self.ast = self.parse_spice()
+            self.evaluator = PyxEval(self.spice_expr, self.varnames, language='python')
+        elif initial_lang.casefold() == 'comsol':
+            self.spice_expr = None
+            self.comsol_expr = expr
+            self.ast = self.parse_comsol()
+            to_be_eval_0 = "".join(str(t) for t in self.ast.inorderAST())
+            to_be_eval = re.sub(r'\^','**', to_be_eval_0)  # Replace '^' with '**' for Python syntax
+            self.evaluator = PyxEval(to_be_eval, self.varnames, language='python')
         else:
-            if initial_lang == 'spice':
-                self.spice_expr = expr
-                self.comsol_expr = None
-                self.ast = self.parse_spice()
-                self.evaluator = PyxEval(self.spice_expr, self.varnames, language='python')
-            elif initial_lang == 'comsol':
-                self.spice_expr = None
-                self.comsol_expr = expr
-                self.ast = self.parse_comsol()
-                to_be_eval_0 = "".join(str(t) for t in self.ast.inorderAST())
-                to_be_eval = re.sub(r'\^','**', to_be_eval_0)  # Replace '^' with '**' for Python syntax
-                self.evaluator = PyxEval(to_be_eval, self.varnames, language='python')
+            raise ValueError("Language must be either 'spice' or 'comsol'")
 
     def aeval(self, *args):
         """
