@@ -176,15 +176,15 @@ def main():
         help="Expression language: 'spice' or 'comsol'."
     )
     parser.add_argument(
-        "-aev", "--aeval", nargs="+", type=float,
+        "-a", "--aeval", nargs="+", type=float,
         help="Values for variables (positional, for aeval)."
     )
     parser.add_argument(
-        "-kev", "--keval", nargs="+",
+        "-k", "--keval", nargs="+",
         help="Keyword values for variables (format: var=val, for keval)."
     )
     parser.add_argument(
-        "-gen", "--generate", choices=["spice", "comsol"],
+        "-g", "--generate", choices=["spice", "comsol"],
         help="Generate expression in target format."
     )
 
