@@ -29,7 +29,7 @@ parseval/
 │   └── ... (test cases, CSVs)
 ├── scripts/
 │   └── parser_testcases.py
-├── src/
+├── parseval/
 │   ├── __init__.py
 │   ├── expr_parser.py
 │   ├── evaluators/
@@ -85,7 +85,7 @@ class ExprParser:
 ### As a Library
 
 ```python
-from src.expr_parser import ExprParser
+from parseval import ExprParser
 
 # Parse a SPICE expression
 parser = ExprParser("(-0.1111*(temp+273.15)**2+5.5555*(temp+273.15)-444.44)*3333", ["temp"], initial_lang ="spice")
@@ -102,19 +102,19 @@ You can use the command-line interface provided by `expr_parser.py` via `argpars
 
 ```bash
 # Evaluate a SPICE expression at temp=25 (positional argument)
-python3 -m src.expr_parser "(-0.0123*(temp+273.15)**2+1.2345*(temp+273.15)-456.78)*4321" --varnames temp --lang spice --aeval 25
+python3 -m parseval.expr_parser "(-0.0123*(temp+273.15)**2+1.2345*(temp+273.15)-456.78)*4321" --varnames temp --lang spice --aeval 25
 Output:
   Parsed expression: (-0.0123*(temp+273.15)**2+1.2345*(temp+273.15)-456.78)*4321
   aeval result: -5107866.72488175
 
 # Evaluate a COMSOL expression at T=298.15 (keyword argument)
-python3 -m src.expr_parser "(33/(0.33+1.33e-3*((T-0[degC])/1[K])+1.33e-3*(T/1[K])^2))" --varnames T --lang comsol --keval T=298.15
+python3 -m parseval.expr_parser "(33/(0.33+1.33e-3*((T-0[degC])/1[K])+1.33e-3*(T/1[K])^2))" --varnames T --lang comsol --keval T=298.15
 Output:
   Parsed expression: (33/(0.33+1.33e-3*((T-0[degC])/1[K])+1.33e-3*(T/1[K])^2))
   keval result: 0.2782661444061141
 
 # Generate a COMSOL expression from a SPICE input
-python3 -m src.expr_parser "99.9-0.222*temp+0.444e-5*temp**2" --varnames temp --lang spice --generate comsol
+python3 -m parseval.expr_parser "99.9-0.222*temp+0.444e-5*temp**2" --varnames temp --lang spice --generate comsol
 Output:
   Parsed expression: 99.9-0.222*temp+0.444e-5*temp**2
   Generated COMSOL: 99.9-0.222*((T-0[degC])/1[K])+0.444e-5*((T-0[degC])/1[K])^2
@@ -131,8 +131,8 @@ Output:
 You can also run the following example scripts:
 
 ```bash
-python3 src/parsers/spice_parser.py
-python3 src/parsers/comsol_parser.py
+python3 parseval/parsers/spice_parser.py
+python3 parseval/parsers/comsol_parser.py
 ```
 
 ## Testing
@@ -153,7 +153,7 @@ Both test types are parametrized using data from `data/spice_comsol_values.csv`.
 
 ## Development
 
-- Source code is in the `src/` directory.
+- Source code is in the `parseval/` directory.
 - Add new parsers or evaluators in their respective subfolders.
 - Test cases and data are in `data/` and `tests/`.
 - Add imports to `__init__.py` files as needed to expose functionality.
