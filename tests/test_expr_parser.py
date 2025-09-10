@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import csv
-from src.expr_parser import ExprParser
 import pytest
+
+from parseval import ExprParser
 
 FILENAME = 'data/spice_comsol_values.csv'
 
